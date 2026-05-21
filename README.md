@@ -62,5 +62,5 @@ When an event is marked complete, overall leaderboard names show medal emojis fo
 
 The public navigation includes an About page. Admins can edit that page from the About section inside Admin.
 
-Admins can choose a global visual theme from the Admin page. `Default` keeps the original styling, with Rally, Coastal, and Night included as starter alternatives.
+Admins can choose a global visual theme from the Admin page. `Default` keeps the original styling, with Rally, Coastal, Night, and Roman included as starter alternatives.
 # tom

@@ -1,4 +1,6 @@
 :root {
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: var(--font-body);
   --bg: #f5f7f8;
   --surface: #ffffff;
   --surface-soft: #f1f6f3;
@@ -44,6 +46,56 @@
   --bronze-mark: #b87545;
   --bronze-text: #8c4f27;
   --shadow: 0 18px 40px rgba(31, 35, 40, 0.08);
+}
+
+html[data-theme="roman"] {
+  --font-body: "Marcellus", Georgia, serif;
+  --font-display: "Cinzel", Georgia, serif;
+  --bg: #f2e3cf;
+  --surface: #fff8ed;
+  --surface-soft: #ead3b8;
+  --ink: #2f2118;
+  --muted: #756052;
+  --line: #d4b28e;
+  --line-strong: #a97955;
+  --accent: #a54f2e;
+  --accent-ink: #fff8ed;
+  --accent-border: #c57b55;
+  --accent-soft: #f0c8a8;
+  --accent-soft-ink: #5b2d1b;
+  --accent-shadow: rgba(165, 79, 46, 0.22);
+  --warn: #8a3426;
+  --focus-ring: rgba(165, 79, 46, 0.25);
+  --nav-bg: rgba(242, 227, 207, 0.94);
+  --panel-tint: rgba(255, 248, 237, 0.8);
+  --input-bg: #fffaf2;
+  --input-line: #caa783;
+  --complete-mark: #637a43;
+  --complete-ring: rgba(99, 122, 67, 0.22);
+  --complete-border: #9fad79;
+  --complete-bg: #edf0d8;
+  --open-border: #cdb89e;
+  --danger-bg: #f9e0d5;
+  --danger-line: #cf927b;
+  --row-shadow: 0 10px 20px rgba(74, 47, 28, 0.08);
+  --tab-shadow: 0 10px 20px rgba(74, 47, 28, 0.1);
+  --dialog-backdrop: rgba(47, 33, 24, 0.54);
+  --dialog-shadow: 0 24px 80px rgba(74, 47, 28, 0.3);
+  --toast-bg: #3b2419;
+  --toast-ink: #fff8ed;
+  --gold-bg: #fff2c8;
+  --gold-line: #c59a3a;
+  --gold-mark: #a87921;
+  --gold-text: #735218;
+  --silver-bg: #eee6dd;
+  --silver-line: #b3aaa0;
+  --silver-mark: #8e877e;
+  --silver-text: #5e554d;
+  --bronze-bg: #f5d9c7;
+  --bronze-line: #bb7f5c;
+  --bronze-mark: #9a5d39;
+  --bronze-text: #724125;
+  --shadow: 0 18px 42px rgba(74, 47, 28, 0.12);
 }
 
 html[data-theme="rally"] {
@@ -167,7 +219,7 @@ body {
   min-height: 100%;
   margin: 0;
   color: var(--ink);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   letter-spacing: 0;
 }
 
@@ -218,6 +270,7 @@ button {
 .kicker {
   margin: 0 0 4px;
   color: var(--accent);
+  font-family: var(--font-display);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -233,18 +286,28 @@ p {
 
 h1 {
   margin-bottom: 4px;
+  font-family: var(--font-display);
   font-size: 2.4rem;
   line-height: 0.95;
+  overflow-wrap: anywhere;
 }
 
 h2 {
   margin-bottom: 0;
+  font-family: var(--font-display);
   font-size: 1.35rem;
+  overflow-wrap: anywhere;
 }
 
 h3 {
   margin-bottom: 0;
+  font-family: var(--font-display);
   font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+html[data-theme="roman"] h1 {
+  font-size: 2.05rem;
 }
 
 .updated-at,
@@ -275,6 +338,7 @@ h3 {
   border-radius: 8px;
   background: transparent;
   color: var(--muted);
+  font-family: var(--font-display);
   font-weight: 800;
 }
 
@@ -337,6 +401,7 @@ h3 {
   padding: 0;
   background: var(--surface);
   color: var(--ink);
+  font-family: var(--font-display);
   font-weight: 900;
   text-align: center;
 }
@@ -490,6 +555,7 @@ tr.medal-bronze {
   border-radius: 8px;
   background: var(--surface-soft);
   color: var(--accent);
+  font-family: var(--font-display);
   font-weight: 900;
 }
 
@@ -595,6 +661,7 @@ td {
 
 th {
   color: var(--muted);
+  font-family: var(--font-display);
   font-size: 0.78rem;
   text-transform: uppercase;
 }
@@ -677,6 +744,7 @@ button:focus-visible {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0 14px;
+  font-family: var(--font-display);
   font-weight: 850;
 }
 
@@ -734,6 +802,7 @@ button:focus-visible {
   border-radius: 8px;
   background: transparent;
   color: var(--muted);
+  font-family: var(--font-display);
   font-weight: 850;
 }
 
@@ -769,6 +838,7 @@ button:focus-visible {
 }
 
 .field span {
+  font-family: var(--font-display);
   text-transform: uppercase;
 }
 
@@ -1131,6 +1201,10 @@ button:focus-visible {
 
   h1 {
     font-size: 4.2rem;
+  }
+
+  html[data-theme="roman"] h1 {
+    font-size: 3.6rem;
   }
 
   .leaderboard-list {

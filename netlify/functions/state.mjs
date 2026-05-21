@@ -12,7 +12,7 @@ const MAX_IMAGE_BYTES = 1_500_000;
 const MAX_EVENT_DESCRIPTION_LENGTH = 3000;
 const MAX_EVENT_NOTE_LENGTH = 300;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const THEME_IDS = new Set(["default", "rally", "coastal", "night"]);
+const THEME_IDS = new Set(["default", "rally", "coastal", "night", "roman"]);
 
 const COMPETITORS = [
   { id: "brad-jones", name: "Brad Jones" },

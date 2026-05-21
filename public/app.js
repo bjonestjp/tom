@@ -5,7 +5,7 @@ const IMAGE_MAX_DIMENSION = 1400;
 const IMAGE_QUALITY = 0.82;
 const EVENT_DESCRIPTION_MAX_LENGTH = 3000;
 const EVENT_NOTE_MAX_LENGTH = 300;
-const THEME_IDS = new Set(["default", "rally", "coastal", "night"]);
+const THEME_IDS = new Set(["default", "rally", "coastal", "night", "roman"]);
 
 const els = {
   competitionTitle: document.querySelector("#competitionTitle"),
