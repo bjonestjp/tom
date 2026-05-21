@@ -484,6 +484,20 @@ tr.medal-bronze td:first-child {
   font-weight: 900;
 }
 
+.event-player-name {
+  display: block;
+  font-weight: 800;
+}
+
+.event-player-note {
+  display: block;
+  max-width: 48ch;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 select,
 input,
 textarea {
@@ -756,10 +770,20 @@ button:focus-visible {
   width: 100%;
 }
 
+.score-editor th:last-child,
+.score-editor td:last-child {
+  text-align: left;
+}
+
 .score-input {
   width: 96px;
   margin-left: auto;
   text-align: right;
+}
+
+.event-note-input {
+  min-width: 220px;
+  min-height: 58px;
 }
 
 .empty-state,

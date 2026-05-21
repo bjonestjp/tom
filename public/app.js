@@ -3,6 +3,7 @@ const PASSWORD_KEY = "tom-leaderboard-admin-password";
 const MAX_PLAYER_IMAGES = 12;
 const IMAGE_MAX_DIMENSION = 1400;
 const IMAGE_QUALITY = 0.82;
+const EVENT_NOTE_MAX_LENGTH = 300;
 
 const els = {
   competitionTitle: document.querySelector("#competitionTitle"),
@@ -305,7 +306,10 @@ function renderEventBoard() {
         ${rows.map((row) => `
           <tr class="${getMedalClass(row.rank)}">
             <td>${row.score === null ? "-" : `#${row.rank}`}</td>
-            <td>${escapeHtml(row.name)}</td>
+            <td>
+              <span class="event-player-name">${escapeHtml(row.name)}</span>
+              ${row.note ? `<span class="event-player-note">${escapeHtml(row.note)}</span>` : ""}
+            </td>
             <td>${row.score === null ? "-" : formatNumber(row.score)}</td>
           </tr>
         `).join("")}
@@ -370,16 +374,28 @@ function renderAdminEditor() {
           <tr>
             <th scope="col">Competitor</th>
             <th scope="col">Points</th>
+            <th scope="col">Notes</th>
           </tr>
         </thead>
         <tbody>
           ${draftState.competitors.map((competitor) => {
             const score = parseScore(eventItem.scores?.[competitor.id]);
+            const note = normalizeEventNote(eventItem.notes?.[competitor.id]);
             return `
               <tr>
                 <td>${escapeHtml(competitor.name)}</td>
                 <td>
                   <input class="score-input" data-event-id="${escapeHtml(eventItem.id)}" data-competitor-id="${escapeHtml(competitor.id)}" type="number" inputmode="decimal" step="0.01" value="${score === null ? "" : escapeAttribute(String(score))}">
+                </td>
+                <td>
+                  <textarea
+                    class="event-note-input"
+                    data-event-note-id="${escapeHtml(eventItem.id)}"
+                    data-competitor-id="${escapeHtml(competitor.id)}"
+                    maxlength="${EVENT_NOTE_MAX_LENGTH}"
+                    rows="2"
+                    aria-label="${escapeAttribute(`${eventItem.name} note for ${competitor.name}`)}"
+                  >${escapeHtml(note)}</textarea>
                 </td>
               </tr>
             `;
@@ -590,7 +606,8 @@ function addEvent() {
     name: `Event ${nextNumber}`,
     description: "",
     completed: false,
-    scores: Object.fromEntries(draftState.competitors.map((competitor) => [competitor.id, null]))
+    scores: Object.fromEntries(draftState.competitors.map((competitor) => [competitor.id, null])),
+    notes: Object.fromEntries(draftState.competitors.map((competitor) => [competitor.id, ""]))
   });
 
   activeEventId = id;
@@ -661,12 +678,17 @@ function collectDraftFromForm() {
     const descriptionInput = els.eventEditorList.querySelector(`[data-event-description="${cssEscape(eventItem.id)}"]`);
     const completedInput = els.eventEditorList.querySelector(`[data-event-completed="${cssEscape(eventItem.id)}"]`);
     const scores = {};
+    const notes = {};
 
     draftState.competitors.forEach((competitor) => {
       const input = els.eventEditorList.querySelector(
         `[data-event-id="${cssEscape(eventItem.id)}"][data-competitor-id="${cssEscape(competitor.id)}"]`
       );
+      const noteInput = els.eventEditorList.querySelector(
+        `[data-event-note-id="${cssEscape(eventItem.id)}"][data-competitor-id="${cssEscape(competitor.id)}"]`
+      );
       scores[competitor.id] = input ? parseScore(input.value) : null;
+      notes[competitor.id] = noteInput ? normalizeEventNote(noteInput.value) : normalizeEventNote(eventItem.notes?.[competitor.id]);
     });
 
     return {
@@ -674,7 +696,8 @@ function collectDraftFromForm() {
       name: nameInput ? nameInput.value.trim() || "Untitled event" : eventItem.name,
       description: descriptionInput ? descriptionInput.value.trim() : eventItem.description || "",
       completed: completedInput ? completedInput.checked : eventItem.completed === true,
-      scores
+      scores,
+      notes
     };
   });
 }
@@ -815,7 +838,8 @@ function getEventRows(data, eventId) {
 
   const rows = data.competitors.map((competitor) => {
     const score = parseScore(eventItem.scores?.[competitor.id]);
-    return { ...competitor, score };
+    const note = normalizeEventNote(eventItem.notes?.[competitor.id]);
+    return { ...competitor, score, note };
   }).sort((a, b) => {
     const aScore = a.score === null ? Number.NEGATIVE_INFINITY : a.score;
     const bScore = b.score === null ? Number.NEGATIVE_INFINITY : b.score;
@@ -869,19 +893,20 @@ function normalizeState(input) {
     updatedAt: input?.updatedAt || null
   };
 
-  normalized.events = normalized.events.map((eventItem) => ({
-    id: eventItem.id,
-    name: eventItem.name || "Untitled event",
-    description: typeof eventItem.description === "string" ? eventItem.description : "",
-    completed: eventItem.completed === true,
-    scores: { ...(eventItem.scores || {}) }
-  }));
-
   normalized.competitors = normalized.competitors.map((competitor) => ({
     id: competitor.id,
     name: competitor.name || "Untitled player",
     titles: normalizeTitleLines(competitor.titles),
     images: normalizePlayerImages(competitor.images)
+  }));
+
+  normalized.events = normalized.events.map((eventItem) => ({
+    id: eventItem.id,
+    name: eventItem.name || "Untitled event",
+    description: typeof eventItem.description === "string" ? eventItem.description : "",
+    completed: eventItem.completed === true,
+    scores: { ...(eventItem.scores || {}) },
+    notes: normalizeEventNotes(eventItem.notes, normalized.competitors)
   }));
 
   return normalized;
@@ -894,6 +919,18 @@ function normalizeTitleLines(value) {
     .filter(Boolean)
     .slice(0, 20)
     .map((line) => line.slice(0, 100));
+}
+
+function normalizeEventNotes(value, competitors) {
+  const input = value && typeof value === "object" ? value : {};
+  return Object.fromEntries(competitors.map((competitor) => [
+    competitor.id,
+    normalizeEventNote(input[competitor.id])
+  ]));
+}
+
+function normalizeEventNote(value) {
+  return String(value || "").trim().slice(0, EVENT_NOTE_MAX_LENGTH);
 }
 
 function normalizePlayerImages(value) {

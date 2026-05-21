@@ -9,6 +9,7 @@ const LOCAL_STATE_PATH = join(process.cwd(), ".data", "leaderboard-state.json");
 const LOCAL_IMAGE_DIR = join(process.cwd(), ".data", "player-images");
 const MAX_PLAYER_IMAGES = 12;
 const MAX_IMAGE_BYTES = 1_500_000;
+const MAX_EVENT_NOTE_LENGTH = 300;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const COMPETITORS = [
@@ -312,12 +313,14 @@ function getLocalImageStorage() {
 
 function createDefaultState() {
   const scores = Object.fromEntries(COMPETITORS.map((competitor) => [competitor.id, null]));
+  const notes = Object.fromEntries(COMPETITORS.map((competitor) => [competitor.id, ""]));
   const events = Array.from({ length: 10 }, (_, index) => ({
     id: `event-${index + 1}`,
     name: `Event ${index + 1}`,
     description: "",
     completed: false,
-    scores: { ...scores }
+    scores: { ...scores },
+    notes: { ...notes }
   }));
 
   return {
@@ -362,8 +365,10 @@ function normalizeIncomingState(input, currentState, options = {}) {
     seenEventIds.add(id);
 
     const scores = {};
+    const notes = {};
     for (const competitorId of competitorIds) {
       scores[competitorId] = parseScore(eventItem?.scores?.[competitorId]);
+      notes[competitorId] = cleanText(eventItem?.notes?.[competitorId], "", MAX_EVENT_NOTE_LENGTH);
     }
 
     return {
@@ -371,7 +376,8 @@ function normalizeIncomingState(input, currentState, options = {}) {
       name: cleanText(eventItem?.name, `Event ${index + 1}`, 80),
       description: cleanText(eventItem?.description, "", 500),
       completed: eventItem?.completed === true,
-      scores
+      scores,
+      notes
     };
   });
 
