@@ -3,6 +3,7 @@ const PASSWORD_KEY = "tom-leaderboard-admin-password";
 const MAX_PLAYER_IMAGES = 12;
 const IMAGE_MAX_DIMENSION = 1400;
 const IMAGE_QUALITY = 0.82;
+const EVENT_DESCRIPTION_MAX_LENGTH = 3000;
 const EVENT_NOTE_MAX_LENGTH = 300;
 
 const els = {
@@ -366,7 +367,7 @@ function renderAdminEditor() {
         </label>
         <label class="field">
           <span>Event ${index + 1} bio</span>
-          <textarea class="event-description-input" data-event-description="${escapeHtml(eventItem.id)}" maxlength="500" rows="3">${escapeHtml(eventItem.description || "")}</textarea>
+          <textarea class="event-description-input" data-event-description="${escapeHtml(eventItem.id)}" maxlength="${EVENT_DESCRIPTION_MAX_LENGTH}" rows="5">${escapeHtml(eventItem.description || "")}</textarea>
         </label>
       </div>
       <table class="score-editor">

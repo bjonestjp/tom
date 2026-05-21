@@ -9,6 +9,7 @@ const LOCAL_STATE_PATH = join(process.cwd(), ".data", "leaderboard-state.json");
 const LOCAL_IMAGE_DIR = join(process.cwd(), ".data", "player-images");
 const MAX_PLAYER_IMAGES = 12;
 const MAX_IMAGE_BYTES = 1_500_000;
+const MAX_EVENT_DESCRIPTION_LENGTH = 3000;
 const MAX_EVENT_NOTE_LENGTH = 300;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
@@ -374,7 +375,7 @@ function normalizeIncomingState(input, currentState, options = {}) {
     return {
       id,
       name: cleanText(eventItem?.name, `Event ${index + 1}`, 80),
-      description: cleanText(eventItem?.description, "", 500),
+      description: cleanText(eventItem?.description, "", MAX_EVENT_DESCRIPTION_LENGTH),
       completed: eventItem?.completed === true,
       scores,
       notes
