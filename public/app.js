@@ -156,7 +156,7 @@ async function loadState(options = {}) {
 
   try {
     const response = await fetch(API_URL, { cache: "no-store" });
-    const payload = await response.json();
+    const payload = await readApiJson(response);
     if (!response.ok) throw new Error(payload.error || "Could not load scores.");
 
     state = normalizeState(payload.state);
@@ -468,7 +468,7 @@ async function handleLogin(event) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ action: "verify", password })
     });
-    const payload = await response.json();
+    const payload = await readApiJson(response);
     if (!response.ok) throw new Error(payload.error || "Password check failed.");
 
     sessionStorage.setItem(PASSWORD_KEY, password);
@@ -538,7 +538,7 @@ async function handlePlayerImageUpload(event) {
           }
         })
       });
-      const payload = await response.json();
+      const payload = await readApiJson(response);
       if (!response.ok) throw new Error(payload.error || "Could not upload image.");
 
       state = normalizeState(payload.state);
@@ -582,7 +582,7 @@ async function handlePlayerImageDelete(event) {
         imageId: deleteButton.dataset.deletePlayerImage
       })
     });
-    const payload = await response.json();
+    const payload = await readApiJson(response);
     if (!response.ok) throw new Error(payload.error || "Could not delete image.");
 
     state = normalizeState(payload.state);
@@ -634,7 +634,7 @@ async function saveDraft(options = {}) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ action: "saveState", password, state: draftState })
     });
-    const payload = await response.json();
+    const payload = await readApiJson(response);
 
     if (response.status === 409) {
       throw new Error("Someone else saved newer scores. Refresh, then re-apply your changes.");
@@ -1034,6 +1034,20 @@ function showToast(message) {
   els.toast.textContent = message;
   els.toast.classList.add("is-visible");
   toastTimer = window.setTimeout(() => els.toast.classList.remove("is-visible"), 2200);
+}
+
+async function readApiJson(response) {
+  const text = await response.text();
+  if (!text.trim()) {
+    throw new Error(`Server returned an empty response (${response.status}). Refresh, then try again.`);
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    const contentType = response.headers.get("content-type") || "unknown content type";
+    throw new Error(`Server returned an invalid response (${response.status}, ${contentType}). Refresh, then try again.`);
+  }
 }
 
 function makeId(prefix) {

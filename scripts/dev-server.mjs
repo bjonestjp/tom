@@ -26,8 +26,11 @@ const server = createServer(async (req, res) => {
 
     await serveStatic(req, res, url);
   } catch (error) {
-    res.writeHead(500, { "content-type": "text/plain; charset=utf-8" });
-    res.end(error.message || "Internal server error");
+    res.writeHead(500, {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store"
+    });
+    res.end(JSON.stringify({ error: error.message || "Internal server error" }));
   }
 });
 
