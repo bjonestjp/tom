@@ -12,6 +12,7 @@ const MAX_IMAGE_BYTES = 1_500_000;
 const MAX_EVENT_DESCRIPTION_LENGTH = 3000;
 const MAX_EVENT_NOTE_LENGTH = 300;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const THEME_IDS = new Set(["default", "rally", "coastal", "night"]);
 
 const COMPETITORS = [
   { id: "brad-jones", name: "Brad Jones" },
@@ -327,6 +328,7 @@ function createDefaultState() {
   return {
     version: 1,
     competitionName: "Leaderboard",
+    theme: "default",
     aboutText: "",
     competitors: normalizeCompetitors([]),
     events,
@@ -385,12 +387,17 @@ function normalizeIncomingState(input, currentState, options = {}) {
   return {
     version: 1,
     competitionName: cleanText(input.competitionName, "Leaderboard", 80),
+    theme: normalizeThemeId(input.theme),
     aboutText: cleanText(input.aboutText, "", 3000),
     competitors,
     events,
     revision,
     updatedAt: typeof input.updatedAt === "string" ? input.updatedAt : currentState.updatedAt || null
   };
+}
+
+function normalizeThemeId(value) {
+  return THEME_IDS.has(value) ? value : "default";
 }
 
 function normalizeCompetitors(inputCompetitors) {

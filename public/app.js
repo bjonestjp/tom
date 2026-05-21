@@ -5,6 +5,7 @@ const IMAGE_MAX_DIMENSION = 1400;
 const IMAGE_QUALITY = 0.82;
 const EVENT_DESCRIPTION_MAX_LENGTH = 3000;
 const EVENT_NOTE_MAX_LENGTH = 300;
+const THEME_IDS = new Set(["default", "rally", "coastal", "night"]);
 
 const els = {
   competitionTitle: document.querySelector("#competitionTitle"),
@@ -30,6 +31,7 @@ const els = {
   adminEditor: document.querySelector("#adminEditor"),
   adminState: document.querySelector("#adminState"),
   competitionNameInput: document.querySelector("#competitionNameInput"),
+  themeSelect: document.querySelector("#themeSelect"),
   addEventButton: document.querySelector("#addEventButton"),
   saveButton: document.querySelector("#saveButton"),
   logoutButton: document.querySelector("#logoutButton"),
@@ -135,6 +137,12 @@ function bindEvents() {
     setSaveStatus("Unsaved changes");
   });
 
+  els.themeSelect.addEventListener("change", () => {
+    if (draftState) draftState.theme = normalizeThemeId(els.themeSelect.value);
+    applyTheme(els.themeSelect.value);
+    setSaveStatus("Unsaved changes");
+  });
+
   els.aboutTextInput.addEventListener("input", () => {
     setSaveStatus("Unsaved changes");
   });
@@ -186,6 +194,7 @@ function setView(view, updateHash = true) {
 }
 
 function renderAll() {
+  applyTheme(state.theme);
   els.competitionTitle.textContent = state.competitionName || "Leaderboard";
   els.updatedAt.textContent = state.updatedAt
     ? `Updated ${formatDateTime(state.updatedAt)}`
@@ -350,6 +359,7 @@ function renderAdminEditor() {
   if (!draftState) return;
 
   els.competitionNameInput.value = draftState.competitionName || "";
+  els.themeSelect.value = normalizeThemeId(draftState.theme);
   els.aboutTextInput.value = draftState.aboutText || "";
   els.eventEditorList.innerHTML = draftState.events.map((eventItem, index) => `
     <article class="event-card" data-event-card="${escapeHtml(eventItem.id)}">
@@ -486,6 +496,7 @@ function logout() {
   sessionStorage.removeItem(PASSWORD_KEY);
   draftState = null;
   els.saveStatus.textContent = "";
+  if (state) applyTheme(state.theme);
   renderAdmin();
 }
 
@@ -663,6 +674,7 @@ function collectDraftFromForm() {
   if (!draftState) return;
 
   draftState.competitionName = els.competitionNameInput.value.trim() || "Leaderboard";
+  draftState.theme = normalizeThemeId(els.themeSelect.value);
   draftState.aboutText = els.aboutTextInput.value.trim();
 
   draftState.competitors = draftState.competitors.map((competitor) => {
@@ -887,6 +899,7 @@ function normalizeState(input) {
   const normalized = {
     version: input?.version || 1,
     competitionName: input?.competitionName || "Leaderboard",
+    theme: normalizeThemeId(input?.theme),
     aboutText: typeof input?.aboutText === "string" ? input.aboutText : "",
     competitors: Array.isArray(input?.competitors) ? input.competitors : [],
     events: Array.isArray(input?.events) ? input.events : [],
@@ -911,6 +924,14 @@ function normalizeState(input) {
   }));
 
   return normalized;
+}
+
+function normalizeThemeId(value) {
+  return THEME_IDS.has(value) ? value : "default";
+}
+
+function applyTheme(value) {
+  document.documentElement.dataset.theme = normalizeThemeId(value);
 }
 
 function normalizeTitleLines(value) {

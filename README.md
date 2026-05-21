@@ -61,4 +61,6 @@ Admins can upload up to 12 compressed gallery images per competitor from the Pla
 When an event is marked complete, overall leaderboard names show medal emojis for players ranked first, second, or third in that completed event, including ties.
 
 The public navigation includes an About page. Admins can edit that page from the About section inside Admin.
+
+Admins can choose a global visual theme from the Admin page. `Default` keeps the original styling, with Rally, Coastal, and Night included as starter alternatives.
 # tom
