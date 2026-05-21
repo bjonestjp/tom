@@ -1,0 +1,16 @@
+{
+  "name": "tom-leaderboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "ADMIN_PASSWORD=Dragon node scripts/dev-server.mjs",
+    "start": "npm run dev"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^10.7.4"
+  },
+  "engines": {
+    "node": ">=20.12.0"
+  }
+}

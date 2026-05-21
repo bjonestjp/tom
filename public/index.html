@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Leaderboard</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <div class="header-title">
+          <h1 id="competitionTitle">Leaderboard</h1>
+          <p id="updatedAt" class="updated-at">Loading scores...</p>
+        </div>
+        <div class="header-actions">
+          <button id="adminButton" class="button button-secondary" type="button">Admin</button>
+          <button id="refreshButton" class="button button-secondary" type="button">Refresh</button>
+        </div>
+      </header>
+
+      <nav class="view-tabs" aria-label="Leaderboard views">
+        <button class="view-tab is-active" type="button" data-view="overall">Overall</button>
+        <button class="view-tab" type="button" data-view="events">Events</button>
+        <button class="view-tab" type="button" data-view="about">About</button>
+      </nav>
+
+      <main>
+        <section id="overallView" class="view is-active" aria-labelledby="overallHeading">
+          <div class="section-heading">
+            <div>
+              <p class="kicker">Standings</p>
+              <h2 id="overallHeading">Overall</h2>
+            </div>
+            <p id="overallCount" class="meta"></p>
+          </div>
+          <div id="overallBoard" class="leaderboard-list" aria-live="polite"></div>
+        </section>
+
+        <section id="eventsView" class="view" aria-labelledby="eventsHeading">
+          <div class="section-heading">
+            <div>
+              <p class="kicker">By event</p>
+              <h2 id="eventsHeading">Event scores</h2>
+            </div>
+          </div>
+          <nav id="eventSelector" class="event-selector" aria-label="Event scoreboards"></nav>
+          <section id="eventDetail" class="event-detail" aria-live="polite"></section>
+          <div id="eventBoard" class="table-wrap" aria-live="polite"></div>
+        </section>
+
+        <section id="aboutView" class="view" aria-labelledby="aboutHeading">
+          <div class="section-heading">
+            <div>
+              <p class="kicker">Information</p>
+              <h2 id="aboutHeading">About</h2>
+            </div>
+          </div>
+          <div id="aboutContent" class="about-content" aria-live="polite"></div>
+        </section>
+
+        <section id="adminView" class="view" aria-labelledby="adminHeading">
+          <div class="section-heading">
+            <div>
+              <p class="kicker">Updates</p>
+              <h2 id="adminHeading">Admin</h2>
+            </div>
+            <p id="adminState" class="meta"></p>
+          </div>
+
+          <form id="loginForm" class="panel admin-login">
+            <label class="field">
+              <span>Shared admin password</span>
+              <input id="adminPassword" type="password" autocomplete="current-password" required>
+            </label>
+            <button class="button button-primary" type="submit">Unlock</button>
+            <p id="loginError" class="form-message" role="alert"></p>
+          </form>
+
+          <div id="adminEditor" class="admin-editor" hidden>
+            <div class="panel editor-toolbar">
+              <label class="field field-grow">
+                <span>Competition name</span>
+                <input id="competitionNameInput" type="text" maxlength="80">
+              </label>
+              <div class="toolbar-actions">
+                <button id="addEventButton" class="button button-secondary" type="button">Add event</button>
+                <button id="saveButton" class="button button-primary" type="button">Save</button>
+                <button id="logoutButton" class="button button-ghost" type="button">Log out</button>
+              </div>
+            </div>
+            <nav class="admin-subtabs" aria-label="Admin sections">
+              <button class="admin-subtab is-active" type="button" data-admin-section="events">Events</button>
+              <button class="admin-subtab" type="button" data-admin-section="players">Players</button>
+              <button class="admin-subtab" type="button" data-admin-section="about">About</button>
+            </nav>
+            <p id="saveStatus" class="form-message" role="status"></p>
+            <section id="adminEventsPanel" class="admin-section" aria-label="Edit events">
+              <div id="eventEditorList" class="event-editor-list"></div>
+            </section>
+            <section id="adminPlayersPanel" class="admin-section" aria-label="Edit players" hidden>
+              <div id="playerEditorList" class="player-editor-list"></div>
+            </section>
+            <section id="adminAboutPanel" class="admin-section" aria-label="Edit about" hidden>
+              <div class="panel admin-about-editor">
+                <label class="field">
+                  <span>About text</span>
+                  <textarea id="aboutTextInput" maxlength="3000" rows="10"></textarea>
+                </label>
+              </div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="competitorDialog" class="competitor-dialog">
+      <div class="dialog-card">
+        <div class="dialog-header">
+          <div>
+            <p class="kicker">Competitor</p>
+            <h2 id="dialogName">Competitor</h2>
+          </div>
+          <button id="dialogClose" class="icon-button" type="button" aria-label="Close">x</button>
+        </div>
+        <div id="dialogSummary" class="dialog-summary"></div>
+        <div id="dialogScores" class="detail-list"></div>
+        <div id="dialogGallery" class="dialog-gallery"></div>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
