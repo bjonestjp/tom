@@ -224,7 +224,7 @@ function renderOverall() {
           </span>
           ${titleLines.length ? `
             <span class="player-title-list">
-              ${titleLines.map((line) => `<span>${escapeHtml(line)}</span>`).join("")}
+              ${titleLines.map((line) => `<span>${formatInlineText(line)}</span>`).join("")}
             </span>
           ` : ""}
         </span>
@@ -279,7 +279,7 @@ function renderEventDetail() {
       <h3>${escapeHtml(eventItem.name)}</h3>
     </div>
     ${statusMarkup}
-    <p class="event-description">${escapeHtml(description)}</p>
+    <p class="event-description">${formatInlineText(description).replaceAll("\n", "<br>")}</p>
   `;
 }
 
@@ -308,7 +308,7 @@ function renderEventBoard() {
             <td>${row.score === null ? "-" : `#${row.rank}`}</td>
             <td>
               <span class="event-player-name">${escapeHtml(row.name)}</span>
-              ${row.note ? `<span class="event-player-note">${escapeHtml(row.note)}</span>` : ""}
+              ${row.note ? `<span class="event-player-note">${formatInlineText(row.note).replaceAll("\n", "<br>")}</span>` : ""}
             </td>
             <td>${row.score === null ? "-" : formatNumber(row.score)}</td>
           </tr>
@@ -328,7 +328,7 @@ function renderAbout() {
 
   els.aboutContent.innerHTML = aboutText
     .split(/\n{2,}/)
-    .map((paragraph) => `<p>${escapeHtml(paragraph).replaceAll("\n", "<br>")}</p>`)
+    .map((paragraph) => `<p>${formatInlineText(paragraph).replaceAll("\n", "<br>")}</p>`)
     .join("");
 }
 
@@ -1048,6 +1048,33 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function formatInlineText(value) {
+  const text = String(value || "");
+  let html = "";
+  let cursor = 0;
+
+  while (cursor < text.length) {
+    const start = text.indexOf("***", cursor);
+    if (start === -1) {
+      html += escapeHtml(text.slice(cursor));
+      break;
+    }
+
+    const end = text.indexOf("***", start + 3);
+    if (end === -1) {
+      html += escapeHtml(text.slice(cursor));
+      break;
+    }
+
+    html += escapeHtml(text.slice(cursor, start));
+    const boldText = text.slice(start + 3, end);
+    html += boldText ? `<strong>${escapeHtml(boldText)}</strong>` : escapeHtml("******");
+    cursor = end + 3;
+  }
+
+  return html;
 }
 
 function escapeAttribute(value) {
