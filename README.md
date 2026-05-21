@@ -8,6 +8,7 @@ A small mobile-first leaderboard site for one overall table plus event scoreboar
 - Netlify Functions for the API
 - Netlify Blobs for persistent JSON storage
 - Shared admin password via the `ADMIN_PASSWORD` environment variable
+- Local development uses `.data/` only when `LEADERBOARD_STORAGE=local`
 
 This keeps hosting free-friendly and avoids a separate database account for a small competition.
 

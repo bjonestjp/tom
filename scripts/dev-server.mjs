@@ -11,6 +11,10 @@ if (!process.env.ADMIN_PASSWORD) {
   process.env.ADMIN_PASSWORD = "Dragon";
 }
 
+if (!process.env.LEADERBOARD_STORAGE) {
+  process.env.LEADERBOARD_STORAGE = "local";
+}
+
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url || "/", `http://${req.headers.host || "localhost"}`);

@@ -212,7 +212,7 @@ async function servePlayerImage(imageId) {
 }
 
 async function getStorage() {
-  if (!process.env.NETLIFY) {
+  if (useLocalStorage()) {
     return getLocalStorage();
   }
 
@@ -256,7 +256,7 @@ function getLocalStorage() {
 }
 
 async function getImageStorage() {
-  if (!process.env.NETLIFY) {
+  if (useLocalStorage()) {
     return getLocalImageStorage();
   }
 
@@ -280,6 +280,10 @@ async function getImageStorage() {
       await store.delete(key);
     }
   };
+}
+
+function useLocalStorage() {
+  return process.env.LEADERBOARD_STORAGE === "local" || process.env.NETLIFY_DEV === "true";
 }
 
 function getLocalImageStorage() {
