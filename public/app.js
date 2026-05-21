@@ -1087,30 +1087,47 @@ function escapeHtml(value) {
 }
 
 function formatInlineText(value) {
-  const text = String(value || "");
+  return formatInlineSegment(String(value || ""));
+}
+
+function formatInlineSegment(text) {
   let html = "";
   let cursor = 0;
 
   while (cursor < text.length) {
-    const start = text.indexOf("***", cursor);
-    if (start === -1) {
+    const nextMarker = findNextInlineMarker(text, cursor);
+    if (!nextMarker) {
       html += escapeHtml(text.slice(cursor));
       break;
     }
 
-    const end = text.indexOf("***", start + 3);
+    const { marker, start } = nextMarker;
+    const end = text.indexOf(marker, start + marker.length);
     if (end === -1) {
       html += escapeHtml(text.slice(cursor));
       break;
     }
 
     html += escapeHtml(text.slice(cursor, start));
-    const boldText = text.slice(start + 3, end);
-    html += boldText ? `<strong>${escapeHtml(boldText)}</strong>` : escapeHtml("******");
-    cursor = end + 3;
+    const markedText = text.slice(start + marker.length, end);
+    html += markedText ? formatInlineMarkup(marker, markedText) : escapeHtml(marker + marker);
+    cursor = end + marker.length;
   }
 
   return html;
+}
+
+function findNextInlineMarker(text, cursor) {
+  return ["***", "///"]
+    .map((marker) => ({ marker, start: text.indexOf(marker, cursor) }))
+    .filter((item) => item.start !== -1)
+    .sort((a, b) => a.start - b.start)[0] || null;
+}
+
+function formatInlineMarkup(marker, text) {
+  if (marker === "***") return `<strong>${formatInlineSegment(text)}</strong>`;
+  if (marker === "///") return `<span class="rainbow-text">${formatInlineSegment(text)}</span>`;
+  return escapeHtml(text);
 }
 
 function escapeAttribute(value) {

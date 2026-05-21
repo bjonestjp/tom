@@ -52,7 +52,7 @@ Netlify will install `@netlify/blobs` during deploy. Viewer traffic reads from `
 The app starts with ten placeholder events named `Event 1` through `Event 10`. Admins can rename, delete, mark complete, and add events from the Admin tab.
 Event bios can be up to 3,000 characters.
 Admins can also add short per-player notes for each event. Event notes display under the competitor name on that event scoreboard.
-Admin-entered display text supports simple bold emphasis with triple asterisks, for example `***important***`.
+Admin-entered display text supports simple markup: `***important***` for bold text and `///colourful///` for animated rainbow text.
 
 Admins can also use the Players section inside Admin to add up to 20 title lines per competitor. Those lines appear under each name on the overall leaderboard.
 

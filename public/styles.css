@@ -368,6 +368,37 @@ html[data-theme="roman"] h1 {
   margin-bottom: 0;
 }
 
+.rainbow-text {
+  display: inline;
+  background: linear-gradient(
+    90deg,
+    #e53935,
+    #f57c00,
+    #fbc02d,
+    #43a047,
+    #1e88e5,
+    #7b1fa2,
+    #e53935
+  );
+  background-size: 220% 100%;
+  color: transparent;
+  font-weight: 900;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rainbow-cycle 3.2s linear infinite;
+}
+
+@keyframes rainbow-cycle {
+  from {
+    background-position: 0% 50%;
+  }
+
+  to {
+    background-position: 220% 50%;
+  }
+}
+
 .view {
   display: none;
 }
@@ -1234,5 +1265,11 @@ button:focus-visible {
 
   .toolbar-actions .button-ghost {
     grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rainbow-text {
+    animation: none;
   }
 }
