@@ -37,6 +37,9 @@
             </div>
             <p id="overallCount" class="meta"></p>
           </div>
+          <div class="overall-apparition" aria-hidden="true">
+            <img id="overallApparitionImage" src="/assets/web-pic.png" alt="">
+          </div>
           <div id="overallBoard" class="leaderboard-list" aria-live="polite"></div>
         </section>
 
@@ -106,6 +109,7 @@
               <button class="admin-subtab is-active" type="button" data-admin-section="events">Events</button>
               <button class="admin-subtab" type="button" data-admin-section="players">Players</button>
               <button class="admin-subtab" type="button" data-admin-section="about">About</button>
+              <button class="admin-subtab" type="button" data-admin-section="visuals">Visuals</button>
             </nav>
             <p id="saveStatus" class="form-message" role="status"></p>
             <section id="adminEventsPanel" class="admin-section" aria-label="Edit events">
@@ -122,6 +126,25 @@
                 </label>
               </div>
             </section>
+            <section id="adminVisualsPanel" class="admin-section" aria-label="Edit visuals" hidden>
+              <div class="panel admin-visuals-editor">
+                <div class="overall-image-manager">
+                  <div>
+                    <p class="kicker">Overall</p>
+                    <h3>Apparition image</h3>
+                  </div>
+                  <img id="overallImagePreview" class="overall-image-preview" src="/assets/web-pic.png" alt="">
+                  <div class="player-image-toolbar">
+                    <label class="button button-secondary file-button">
+                      Replace image
+                      <input id="overallImageUpload" class="player-image-upload" type="file" accept="image/*">
+                    </label>
+                    <button id="resetOverallImageButton" class="button button-ghost" type="button">Use default</button>
+                    <span id="overallImageMeta" class="meta">Default image</span>
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
         </section>
       </main>
@@ -132,7 +155,11 @@
         <div class="dialog-header">
           <div>
             <p class="kicker">Competitor</p>
-            <h2 id="dialogName">Competitor</h2>
+            <div class="dialog-name-row">
+              <h2 id="dialogName">Competitor</h2>
+              <div id="dialogMedals" class="player-medals dialog-medals" hidden></div>
+            </div>
+            <div id="dialogTitles" class="dialog-title-list"></div>
           </div>
           <button id="dialogClose" class="icon-button" type="button" aria-label="Close">x</button>
         </div>
@@ -141,6 +168,11 @@
         <div id="dialogGallery" class="dialog-gallery"></div>
       </div>
     </dialog>
+
+    <div id="failedLoginVideoOverlay" class="failed-login-video-overlay" hidden>
+      <video id="failedLoginVideo" class="failed-login-video" src="/assets/strike.mp4" preload="auto" playsinline></video>
+      <button id="failedLoginVideoClose" class="failed-login-video-close" type="button" aria-label="Close video">x</button>
+    </div>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script src="/app.js" defer></script>

@@ -61,6 +61,14 @@ export default async function handler(request) {
       return deletePlayerImage(payload);
     }
 
+    if (payload.action === "uploadOverallImage") {
+      return uploadOverallImage(payload);
+    }
+
+    if (payload.action === "resetOverallImage") {
+      return resetOverallImage();
+    }
+
     if (payload.action !== "saveState") {
       return json({ error: "Unknown action." }, 400);
     }
@@ -190,11 +198,81 @@ async function deletePlayerImage(payload) {
   return json({ state: stateToSave });
 }
 
+async function uploadOverallImage(payload) {
+  const storage = await getStorage();
+  const currentEntry = await storage.read();
+  const currentState = normalizeState(currentEntry?.state || createDefaultState());
+  const image = parseImageDataUrl(payload.image?.dataUrl);
+  const imageId = `overall-${randomUUID()}`;
+  const now = new Date().toISOString();
+  const imageMeta = {
+    id: imageId,
+    name: cleanText(payload.image?.name, "Overall image", 80),
+    contentType: image.contentType,
+    uploadedAt: now
+  };
+
+  const imageStorage = await getImageStorage();
+  await imageStorage.write(imageId, image.bytes, image.contentType);
+
+  const stateToSave = {
+    ...currentState,
+    overallImage: imageMeta,
+    revision: currentState.revision + 1,
+    updatedAt: now
+  };
+
+  const writeResult = await storage.write(stateToSave, currentEntry?.etag);
+  if (writeResult?.conflict) {
+    await imageStorage.delete(imageId);
+    const { state } = await readCurrentState();
+    return json({ error: "The leaderboard changed while uploading.", state }, 409);
+  }
+
+  if (currentState.overallImage?.id && currentState.overallImage.id !== imageId) {
+    await imageStorage.delete(currentState.overallImage.id);
+  }
+
+  return json({ state: stateToSave, image: imageMeta });
+}
+
+async function resetOverallImage() {
+  const storage = await getStorage();
+  const currentEntry = await storage.read();
+  const currentState = normalizeState(currentEntry?.state || createDefaultState());
+  const currentImage = currentState.overallImage;
+
+  if (!currentImage?.id) {
+    return json({ state: currentState });
+  }
+
+  const stateToSave = {
+    ...currentState,
+    overallImage: null,
+    revision: currentState.revision + 1,
+    updatedAt: new Date().toISOString()
+  };
+
+  const writeResult = await storage.write(stateToSave, currentEntry?.etag);
+  if (writeResult?.conflict) {
+    const { state } = await readCurrentState();
+    return json({ error: "The leaderboard changed while restoring the default image.", state }, 409);
+  }
+
+  const imageStorage = await getImageStorage();
+  await imageStorage.delete(currentImage.id);
+
+  return json({ state: stateToSave });
+}
+
 async function servePlayerImage(imageId) {
   if (!isSafeImageId(imageId)) return json({ error: "Image not found." }, 404);
 
   const { state } = await readCurrentState();
-  const imageMeta = state.competitors
+  const overallImage = cleanStoredImage(state.overallImage);
+  const imageMeta = overallImage?.id === imageId
+    ? overallImage
+    : state.competitors
     .flatMap((competitor) => competitor.images || [])
     .find((image) => image.id === imageId);
 
@@ -329,6 +407,7 @@ function createDefaultState() {
     version: 1,
     competitionName: "Leaderboard",
     theme: "default",
+    overallImage: null,
     aboutText: "",
     competitors: normalizeCompetitors([]),
     events,
@@ -388,6 +467,7 @@ function normalizeIncomingState(input, currentState, options = {}) {
     version: 1,
     competitionName: cleanText(input.competitionName, "Leaderboard", 80),
     theme: normalizeThemeId(input.theme),
+    overallImage: cleanStoredImage(input.overallImage),
     aboutText: cleanText(input.aboutText, "", 3000),
     competitors,
     events,
@@ -457,14 +537,22 @@ function cleanTitleLines(value) {
 function cleanPlayerImages(value) {
   const images = Array.isArray(value) ? value : [];
   return images
-    .filter((image) => image && isSafeImageId(image.id) && ALLOWED_IMAGE_TYPES.has(image.contentType))
-    .map((image) => ({
-      id: image.id,
-      name: cleanText(image.name, "Player image", 80),
-      contentType: image.contentType,
-      uploadedAt: typeof image.uploadedAt === "string" ? image.uploadedAt : null
-    }))
+    .map((image) => cleanStoredImage(image, "Player image"))
+    .filter(Boolean)
     .slice(0, MAX_PLAYER_IMAGES);
+}
+
+function cleanStoredImage(image, fallbackName = "Image") {
+  if (!image || !isSafeImageId(image.id) || !ALLOWED_IMAGE_TYPES.has(image.contentType)) {
+    return null;
+  }
+
+  return {
+    id: image.id,
+    name: cleanText(image.name, fallbackName, 80),
+    contentType: image.contentType,
+    uploadedAt: typeof image.uploadedAt === "string" ? image.uploadedAt : null
+  };
 }
 
 function parseImageDataUrl(dataUrl) {

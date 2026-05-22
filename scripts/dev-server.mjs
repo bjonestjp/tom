@@ -110,6 +110,7 @@ function getContentType(ext) {
     ".css": "text/css; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
     ".json": "application/json; charset=utf-8",
+    ".mp4": "video/mp4",
     ".svg": "image/svg+xml"
   };
   return types[ext] || "application/octet-stream";

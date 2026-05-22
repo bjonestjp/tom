@@ -6,6 +6,7 @@ const IMAGE_QUALITY = 0.82;
 const EVENT_DESCRIPTION_MAX_LENGTH = 3000;
 const EVENT_NOTE_MAX_LENGTH = 300;
 const THEME_IDS = new Set(["default", "rally", "coastal", "night", "roman"]);
+const DEFAULT_OVERALL_IMAGE_URL = "/assets/web-pic.png";
 
 const els = {
   competitionTitle: document.querySelector("#competitionTitle"),
@@ -21,6 +22,7 @@ const els = {
   },
   overallBoard: document.querySelector("#overallBoard"),
   overallCount: document.querySelector("#overallCount"),
+  overallApparitionImage: document.querySelector("#overallApparitionImage"),
   aboutContent: document.querySelector("#aboutContent"),
   eventSelector: document.querySelector("#eventSelector"),
   eventDetail: document.querySelector("#eventDetail"),
@@ -40,17 +42,27 @@ const els = {
   adminSections: {
     events: document.querySelector("#adminEventsPanel"),
     players: document.querySelector("#adminPlayersPanel"),
-    about: document.querySelector("#adminAboutPanel")
+    about: document.querySelector("#adminAboutPanel"),
+    visuals: document.querySelector("#adminVisualsPanel")
   },
   aboutTextInput: document.querySelector("#aboutTextInput"),
+  overallImagePreview: document.querySelector("#overallImagePreview"),
+  overallImageUpload: document.querySelector("#overallImageUpload"),
+  resetOverallImageButton: document.querySelector("#resetOverallImageButton"),
+  overallImageMeta: document.querySelector("#overallImageMeta"),
   eventEditorList: document.querySelector("#eventEditorList"),
   playerEditorList: document.querySelector("#playerEditorList"),
   dialog: document.querySelector("#competitorDialog"),
   dialogClose: document.querySelector("#dialogClose"),
   dialogName: document.querySelector("#dialogName"),
+  dialogMedals: document.querySelector("#dialogMedals"),
+  dialogTitles: document.querySelector("#dialogTitles"),
   dialogSummary: document.querySelector("#dialogSummary"),
   dialogScores: document.querySelector("#dialogScores"),
   dialogGallery: document.querySelector("#dialogGallery"),
+  failedLoginVideoOverlay: document.querySelector("#failedLoginVideoOverlay"),
+  failedLoginVideo: document.querySelector("#failedLoginVideo"),
+  failedLoginVideoClose: document.querySelector("#failedLoginVideoClose"),
   toast: document.querySelector("#toast")
 };
 
@@ -132,6 +144,8 @@ function bindEvents() {
 
   els.playerEditorList.addEventListener("change", handlePlayerImageUpload);
   els.playerEditorList.addEventListener("click", handlePlayerImageDelete);
+  els.overallImageUpload.addEventListener("change", handleOverallImageUpload);
+  els.resetOverallImageButton.addEventListener("click", resetOverallImage);
 
   els.competitionNameInput.addEventListener("input", () => {
     setSaveStatus("Unsaved changes");
@@ -152,6 +166,14 @@ function bindEvents() {
     if (event.target === els.dialog) els.dialog.close();
   });
   els.dialogGallery.addEventListener("click", handleGalleryClick);
+  els.failedLoginVideoClose.addEventListener("click", closeFailedLoginVideo);
+  els.failedLoginVideo.addEventListener("ended", closeFailedLoginVideo);
+  els.failedLoginVideoOverlay.addEventListener("click", (event) => {
+    if (event.target === els.failedLoginVideoOverlay) closeFailedLoginVideo();
+  });
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !els.failedLoginVideoOverlay.hidden) closeFailedLoginVideo();
+  });
 
   window.addEventListener("hashchange", () => {
     const nextView = location.hash.slice(1);
@@ -195,6 +217,7 @@ function setView(view, updateHash = true) {
 
 function renderAll() {
   applyTheme(state.theme);
+  renderOverallApparition();
   els.competitionTitle.textContent = state.competitionName || "Leaderboard";
   els.updatedAt.textContent = state.updatedAt
     ? `Updated ${formatDateTime(state.updatedAt)}`
@@ -205,6 +228,13 @@ function renderAll() {
   renderEventBoard();
   renderAbout();
   renderAdmin();
+}
+
+function renderOverallApparition() {
+  const imageUrl = getOverallImageUrl(state.overallImage);
+  if (els.overallApparitionImage.getAttribute("src") !== imageUrl) {
+    els.overallApparitionImage.src = imageUrl;
+  }
 }
 
 function renderOverall() {
@@ -361,6 +391,7 @@ function renderAdminEditor() {
   els.competitionNameInput.value = draftState.competitionName || "";
   els.themeSelect.value = normalizeThemeId(draftState.theme);
   els.aboutTextInput.value = draftState.aboutText || "";
+  renderVisualsEditor();
   els.eventEditorList.innerHTML = draftState.events.map((eventItem, index) => `
     <article class="event-card" data-event-card="${escapeHtml(eventItem.id)}">
       <div class="event-card-header">
@@ -454,6 +485,13 @@ function renderAdminEditor() {
   }).join("");
 }
 
+function renderVisualsEditor() {
+  const overallImage = normalizeStoredImage(draftState.overallImage);
+  els.overallImagePreview.src = getOverallImageUrl(overallImage);
+  els.overallImageMeta.textContent = overallImage ? overallImage.name : "Default image";
+  els.resetOverallImageButton.disabled = !overallImage;
+}
+
 function renderAdminSection() {
   els.adminSectionButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.adminSection === activeAdminSection);
@@ -480,7 +518,10 @@ async function handleLogin(event) {
       body: JSON.stringify({ action: "verify", password })
     });
     const payload = await readApiJson(response);
-    if (!response.ok) throw new Error(payload.error || "Password check failed.");
+    if (!response.ok) {
+      if (response.status === 401) playFailedLoginVideo();
+      throw new Error(payload.error || "Password check failed.");
+    }
 
     sessionStorage.setItem(PASSWORD_KEY, password);
     els.adminPassword.value = "";
@@ -490,6 +531,36 @@ async function handleLogin(event) {
   } catch (error) {
     els.loginError.textContent = error.message;
   }
+}
+
+function playFailedLoginVideo() {
+  const overlay = els.failedLoginVideoOverlay;
+  const video = els.failedLoginVideo;
+  if (!overlay || !video) return;
+
+  overlay.hidden = false;
+  overlay.classList.add("is-visible");
+  video.currentTime = 0;
+  video.muted = false;
+
+  const playResult = video.play();
+  if (playResult && typeof playResult.catch === "function") {
+    playResult.catch(() => {
+      video.muted = true;
+      video.play().catch(() => {});
+    });
+  }
+}
+
+function closeFailedLoginVideo() {
+  const overlay = els.failedLoginVideoOverlay;
+  const video = els.failedLoginVideo;
+  if (!overlay || !video) return;
+
+  video.pause();
+  video.currentTime = 0;
+  overlay.classList.remove("is-visible");
+  overlay.hidden = true;
 }
 
 function logout() {
@@ -564,6 +635,83 @@ async function handlePlayerImageUpload(event) {
       : `Uploaded ${filesToUpload.length} image(s).`
     );
     showToast("Images uploaded");
+  } catch (error) {
+    setSaveStatus(error.message, true);
+  }
+}
+
+async function handleOverallImageUpload(event) {
+  const input = event.target;
+  const file = input.files?.[0];
+  input.value = "";
+  if (!file || !file.type.startsWith("image/")) return;
+
+  const password = sessionStorage.getItem(PASSWORD_KEY);
+  if (!password) {
+    logout();
+    return;
+  }
+
+  collectDraftFromForm();
+  const saved = await saveDraft({ quiet: true });
+  if (!saved) return;
+
+  try {
+    setSaveStatus("Preparing image...");
+    const dataUrl = await compressImageFile(file, { outputType: "image/webp" });
+    setSaveStatus("Uploading overall image...");
+
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "uploadOverallImage",
+        password,
+        image: {
+          name: file.name,
+          dataUrl
+        }
+      })
+    });
+    const payload = await readApiJson(response);
+    if (!response.ok) throw new Error(payload.error || "Could not upload image.");
+
+    state = normalizeState(payload.state);
+    draftState = cloneState(state);
+    renderAll();
+    setSaveStatus("Overall image updated.");
+    showToast("Overall image updated");
+  } catch (error) {
+    setSaveStatus(error.message, true);
+  }
+}
+
+async function resetOverallImage() {
+  const password = sessionStorage.getItem(PASSWORD_KEY);
+  if (!password) {
+    logout();
+    return;
+  }
+
+  collectDraftFromForm();
+  const saved = await saveDraft({ quiet: true });
+  if (!saved) return;
+
+  try {
+    setSaveStatus("Restoring default image...");
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "resetOverallImage", password })
+    });
+    const payload = await readApiJson(response);
+    if (!response.ok) throw new Error(payload.error || "Could not restore default image.");
+
+    state = normalizeState(payload.state);
+    draftState = cloneState(state);
+    renderAll();
+    setSaveStatus("Default overall image restored.");
+    showToast("Default image restored");
   } catch (error) {
     setSaveStatus(error.message, true);
   }
@@ -720,6 +868,14 @@ function openCompetitorDialog(competitorId) {
   if (!row) return;
 
   els.dialogName.textContent = row.name;
+  const medals = row.medals || [];
+  els.dialogMedals.hidden = !medals.length;
+  els.dialogMedals.setAttribute("aria-label", medals.length ? getMedalSummary(medals) : "");
+  els.dialogMedals.innerHTML = medals.map((medal) => `<span aria-hidden="true">${medal}</span>`).join("");
+  const titleLines = normalizeTitleLines(row.titles);
+  els.dialogTitles.innerHTML = titleLines.length
+    ? titleLines.map((line) => `<span>${formatInlineText(line)}</span>`).join("")
+    : "";
   els.dialogSummary.innerHTML = `
     <div class="summary-stat">
       <strong>${formatNumber(row.total)}</strong>
@@ -900,6 +1056,7 @@ function normalizeState(input) {
     version: input?.version || 1,
     competitionName: input?.competitionName || "Leaderboard",
     theme: normalizeThemeId(input?.theme),
+    overallImage: normalizeStoredImage(input?.overallImage),
     aboutText: typeof input?.aboutText === "string" ? input.aboutText : "",
     competitors: Array.isArray(input?.competitors) ? input.competitors : [],
     events: Array.isArray(input?.events) ? input.events : [],
@@ -958,21 +1115,31 @@ function normalizeEventNote(value) {
 function normalizePlayerImages(value) {
   const images = Array.isArray(value) ? value : [];
   return images
-    .filter((image) => image && typeof image.id === "string")
-    .map((image) => ({
-      id: image.id,
-      name: typeof image.name === "string" ? image.name : "Player image",
-      contentType: typeof image.contentType === "string" ? image.contentType : "image/jpeg",
-      uploadedAt: typeof image.uploadedAt === "string" ? image.uploadedAt : null
-    }))
+    .map((image) => normalizeStoredImage(image))
+    .filter(Boolean)
     .slice(0, MAX_PLAYER_IMAGES);
+}
+
+function normalizeStoredImage(image) {
+  if (!image || typeof image.id !== "string") return null;
+  return {
+    id: image.id,
+    name: typeof image.name === "string" ? image.name : "Image",
+    contentType: typeof image.contentType === "string" ? image.contentType : "image/jpeg",
+    uploadedAt: typeof image.uploadedAt === "string" ? image.uploadedAt : null
+  };
 }
 
 function getImageUrl(imageId) {
   return `${API_URL}?image=${encodeURIComponent(imageId)}`;
 }
 
-async function compressImageFile(file) {
+function getOverallImageUrl(image) {
+  const normalized = normalizeStoredImage(image);
+  return normalized ? getImageUrl(normalized.id) : DEFAULT_OVERALL_IMAGE_URL;
+}
+
+async function compressImageFile(file, options = {}) {
   const image = await loadImage(file);
   const scale = Math.min(1, IMAGE_MAX_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight));
   const width = Math.max(1, Math.round(image.naturalWidth * scale));
@@ -982,11 +1149,14 @@ async function compressImageFile(file) {
   canvas.height = height;
 
   const context = canvas.getContext("2d");
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, width, height);
+  const outputType = options.outputType || "image/jpeg";
+  if (outputType === "image/jpeg") {
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
+  }
   context.drawImage(image, 0, 0, width, height);
 
-  return canvas.toDataURL("image/jpeg", IMAGE_QUALITY);
+  return canvas.toDataURL(outputType, IMAGE_QUALITY);
 }
 
 function loadImage(file) {
