@@ -48,6 +48,7 @@ Netlify will install `@netlify/blobs` during deploy. Viewer traffic reads from `
 - Sam Holdsworth
 - Jack Tunnacliffe-Jones
 - Scott McEvoy
+- Arthur Rowland
 
 The app starts with ten placeholder events named `Event 1` through `Event 10`. Admins can rename, delete, mark complete, and add events from the Admin tab.
 Event bios can be up to 3,000 characters.

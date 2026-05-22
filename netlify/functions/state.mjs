@@ -24,7 +24,8 @@ const COMPETITORS = [
   { id: "james-hogan", name: "James Hogan" },
   { id: "sam-holdsworth", name: "Sam Holdsworth" },
   { id: "jack-tunnacliffe-jones", name: "Jack Tunnacliffe-Jones" },
-  { id: "scott-mcevoy", name: "Scott McEvoy" }
+  { id: "scott-mcevoy", name: "Scott McEvoy" },
+  { id: "arthur-rowland", name: "Arthur Rowland" }
 ];
 
 export default async function handler(request) {
